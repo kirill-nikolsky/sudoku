@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import glob
 import os
@@ -83,7 +83,7 @@ class Composer:
 
     def find_compose_files(self):
         if (self.compose_files is None):
-            compose_files = glob.glob('*compose.y*ml') + sorted(glob.glob('*/*compose.y*ml'))
+            compose_files = glob.glob('compose.yaml') + sorted(glob.glob('*/compose-sudoku.yaml'))
             compose_files = filter(lambda rel_path: '_noscan' not in rel_path, compose_files)
             compose_files = map(lambda rel_path: os.path.realpath(rel_path), compose_files)
 
