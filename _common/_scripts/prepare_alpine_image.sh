@@ -6,7 +6,7 @@ SUDOCK_PATH="/usr/sbin/sudock"
 [[ -z ${DOCKER_USER} ]] && DOCKER_USER="docker"
 [[ -z ${DOCKER_GROUP} ]] && DOCKER_GROUP="docker"
 
-apk add ${APK_ADD_PACKAGES}
+apk update && apk add ${APK_ADD_PACKAGES}
 
 # -- Ensure regular user and group
 echo "Add/create ${DOCKER_USER}:${DOCKER_GROUP} with uid: ${DOCKER_UID}, gid: ${DOCKER_GID}"
