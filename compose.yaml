@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  traefik:
+    image: traefik:2.5.3
+
+    container_name: traefik
+
+    networks:
+    - common_network
+
+    ports:
+    - "81:80/tcp"
+    - "443:443/tcp"
+    - "8080:8080/tcp"
+    - "8000:8000/tcp"
+    - "13306:3306/tcp"
+    - "15432:5432/tcp"
+    - "16379:6379/tcp"
+
+    volumes:
+    - /etc/localtime:/etc/localtime
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./_common/traefik/traefik.yaml:/traefik.yaml
+
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.traefik.rule=Host(`traefik.cdek.dev`)"
+
+  redis:
+    image: eqalpha/keydb:x86_64_v6.2.0
+
+    container_name: redis
+
+    depends_on:
+    - traefik
+
+    networks:
+    - common_network
+
+    ports:
+    - "6379/tcp"
+
+    labels:
+    - "traefik.enable=true"
+    - "traefik.tcp.routers.redis.entrypoints=redis"
+    - "traefik.tcp.routers.redis.rule=Host(`redis.cdek.dev`)"
+
+  centrifugo:
+    image: centrifugo/centrifugo:v3.0.1-amd64
+
+    container_name: centrifugo
+
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+    depends_on:
+    - traefik
+
+    networks:
+    - common_network
+
+    ports:
+    - "8000/tcp"
+
+    volumes:
+    - ./_common/centrifugo/config.json:/centrifugo/config.json
+
+    command: centrifugo -c config.json
+
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.centrifugo.entrypoints=centrifugo"
+    - "traefik.http.routers.centrifugo.rule=Host(`centrifugo.cdek.dev`)"
+
+networks:
+  common_network:
+    name: common_network
+    driver: bridge

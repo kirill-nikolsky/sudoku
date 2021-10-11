@@ -1,0 +1,160 @@
+#! /usr/bin/env python
+
+import glob
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+__FILE__ = os.path.realpath(sys.argv[0])
+__FILENAME__ = os.path.basename(sys.argv[0])
+__DIR__ = os.path.dirname(__FILE__)
+__DIRNAME__ = os.path.basename(__DIR__)
+__ARGS__ = sys.argv[1:]
+
+D = "/usr/bin/docker"
+DC = "/usr/local/bin/docker-compose"
+WRONG_USAGE_MESSAGE = "\n\033[0;41m Usage: " + __FILE__ + " build | start | stop | restart | rebuild \033[0m\n"
+
+if (len(__ARGS__) != 1):
+    print(WRONG_USAGE_MESSAGE)
+
+    exit(10)
+else:
+    __COMMAND__ = __ARGS__[0]
+
+class Composer:
+    def __init__(self):
+        self.compose_files = None
+
+        self.env_vars = dict()
+        self.env_vars.update(os.environ)
+
+    def _check_docker(self):
+        sys.stdout.write("\033[93m Checking " + D + "  ... \033[0m")
+
+        try:
+            version_string = subprocess.check_output([D, '--version']).decode('ISO-8859-1')
+            version_match = re.search(r'version\s(?P<version>\d+(?:\.\d+)*)', version_string).group('version')
+            (major, minor) = map(int, tuple(version_match.split('.')[:2]))
+
+            if (major < 20):
+                print("\n\033[0;41m " + D + " has incompatible version. Minimum required version is 20+ \033[0m\n")
+
+                exit(11)
+
+        except OSError:
+            print("\n\033[0;41m " + D + " either not installed or not available in PATH \033[0m\n")
+
+            exit(11)
+
+        print("\033[92m success \033[0m")
+
+    def _check_docker_compose(self):
+        sys.stdout.write("\033[93m Checking " + DC + " ...\033[0m")
+
+        try:
+            version_string = subprocess.check_output([DC, '--version', '--short']).decode('ISO-8859-1')
+            version_match = re.search(r'version\s(?P<version>\d+(?:\.\d+)*)', version_string).group('version')
+            (major, minor) = map(int, tuple(version_match.split('.')[:2]))
+
+            if (major < 1 or minor < 26):
+                print("\n\033[0;41m " + DC + " has incompatible version. Minimum required version is 1.26+ \033[0m\n")
+
+                exit(11)
+
+        except OSError:
+            print("\n\033[0;41m " + DC + " either not installed or not available in PATH \033[0m\n")
+
+            exit(11)
+
+        print("\033[92m success \033[0m")
+
+    def _check_decorator(wrapped):
+        def wrapper(self):
+            if (wrapped.__name__ == __COMMAND__):
+                self._check_docker()
+                self._check_docker_compose()
+
+            wrapped(self)
+
+        return wrapper
+
+    def find_compose_files(self):
+        if (self.compose_files is None):
+            compose_files = glob.glob('*compose.y*ml') + sorted(glob.glob('*/*compose.y*ml'))
+            compose_files = filter(lambda rel_path: '_noscan' not in rel_path, compose_files)
+            compose_files = map(lambda rel_path: os.path.realpath(rel_path), compose_files)
+
+            self.compose_files = list(compose_files)
+
+        return self.compose_files
+
+    @_check_decorator
+    def check(self):
+        pass
+
+    @_check_decorator
+    def build(self):
+        src_scripts_dir = './_common/_scripts'
+
+        for compose_file in self.find_compose_files():
+            compose_file_dir = os.path.realpath(os.path.dirname(compose_file))
+            compose_file_docker_dir = next(iter(glob.glob(compose_file_dir + '/.docker') or []), None)
+
+            if (compose_file_docker_dir is not None):
+                dst_scripts_dir = compose_file_docker_dir + '/_scripts'
+
+                if not os.path.exists(dst_scripts_dir):
+                    os.mkdir(dst_scripts_dir)
+
+                shutil.copyfile(src_scripts_dir + '/prepare_alpine_image.sh', dst_scripts_dir + '/prepare_alpine_image.sh')
+
+            subprocess.call([DC, '-f', compose_file, 'build'], env=self.env_vars)
+
+    @_check_decorator
+    def start(self):
+        for compose_file in self.find_compose_files():
+            subprocess.call([DC, '-f', compose_file, 'up', '-d'], env=self.env_vars)
+
+    @_check_decorator
+    def stop(self):
+        for compose_file in reversed(self.find_compose_files()):
+            subprocess.call([DC, '-f', compose_file, 'down'], env=self.env_vars)
+
+    @_check_decorator
+    def restart(self):
+        self.stop()
+        self.start()
+
+    @_check_decorator
+    def rebuild(self):
+        self.stop()
+        self.build()
+        self.start()
+
+composer = Composer()
+
+if (__COMMAND__ == 'check'):
+    composer.check()
+
+elif (__COMMAND__ == 'build'):
+    composer.build()
+
+elif (__COMMAND__ == 'start'):
+    composer.start()
+
+elif (__COMMAND__ == 'stop'):
+    composer.stop()
+
+elif (__COMMAND__ == 'restart'):
+    composer.restart()
+
+elif (__COMMAND__ == 'rebuild'):
+    composer.rebuild()
+
+else:
+    print(WRONG_USAGE_MESSAGE)
+
+    exit(11)

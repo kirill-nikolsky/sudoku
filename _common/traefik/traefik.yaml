@@ -1,0 +1,30 @@
+api:
+  insecure: true
+  dashboard: true
+
+entryPoints:
+  web_80:
+    address: ":80/tcp"
+
+  web_443:
+    address: ":443/tcp"
+
+  mysql:
+    address: ":3306/tcp"
+
+  pgsql:
+    address: ":5432/tcp"
+
+  redis:
+    address: ":6379/tcp"
+
+  centrifugo:
+    address: ":8000/tcp"
+
+providers:
+  providersThrottleDuration: 5
+
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    defaultRule: "Host(`{{ normalize .Name }}.cdek.dev`)"
+    exposedByDefault: false
