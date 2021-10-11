@@ -7,7 +7,7 @@ services:
     container_name: traefik
 
     networks:
-    - common_network
+    - sudoku_network
 
     ports:
     - "80:80/tcp"
@@ -36,7 +36,7 @@ services:
     - traefik
 
     networks:
-    - common_network
+    - sudoku_network
 
     ports:
     - "6379/tcp"
@@ -60,7 +60,7 @@ services:
     - traefik
 
     networks:
-    - common_network
+    - sudoku_network
 
     ports:
     - "8000/tcp"
@@ -76,6 +76,6 @@ services:
     - "traefik.http.routers.centrifugo.rule=Host(`centrifugo.cdek.dev`)"
 
 networks:
-  common_network:
-    name: common_network
+  sudoku_network:
+    name: sudoku_network
     driver: bridge
