@@ -15,7 +15,7 @@ __ARGS__ = sys.argv[1:]
 
 D = "/usr/bin/docker"
 DC = "/usr/local/bin/docker-compose"
-WRONG_USAGE_MESSAGE = "\n\033[0;41m Usage: " + __FILE__ + " build | start | stop | restart | rebuild \033[0m\n"
+WRONG_USAGE_MESSAGE = "\n\033[0;41m Usage: " + __FILE__ + " build | force-build | start | stop | restart | rebuild | force-rebuild \033[0m\n"
 
 if (len(__ARGS__) != 1):
     print(WRONG_USAGE_MESSAGE)
@@ -27,6 +27,7 @@ else:
 class Composer:
     def __init__(self):
         self.compose_files = None
+        self.force_rebuild = False
 
         self.env_vars = dict()
         self.env_vars.update(os.environ)
@@ -111,7 +112,11 @@ class Composer:
 
                 shutil.copyfile(src_scripts_dir + '/prepare_alpine_image.sh', dst_scripts_dir + '/prepare_alpine_image.sh')
 
-            subprocess.call([DC, '-f', compose_file, 'build'], env=self.env_vars)
+            build_cmd = 'build --no-cache' if self.force_rebuild is True else 'build'
+            exec_cmd = "{DC} -f {compose_file} {build_cmd}" \
+            .format(DC=DC, compose_file=compose_file, build_cmd=build_cmd)
+
+            subprocess.call(exec_cmd, env=self.env_vars, shell=True)
 
     @_check_decorator
     def start(self):
@@ -142,6 +147,10 @@ if (__COMMAND__ == 'check'):
 elif (__COMMAND__ == 'build'):
     composer.build()
 
+elif (__COMMAND__ == 'force-build'):
+    composer.force_rebuild = True
+    composer.build()
+
 elif (__COMMAND__ == 'start'):
     composer.start()
 
@@ -152,6 +161,10 @@ elif (__COMMAND__ == 'restart'):
     composer.restart()
 
 elif (__COMMAND__ == 'rebuild'):
+    composer.rebuild()
+
+elif (__COMMAND__ == 'force-rebuild'):
+    composer.force_rebuild = True
     composer.rebuild()
 
 else:
