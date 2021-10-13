@@ -2,9 +2,18 @@ api:
   insecure: true
   dashboard: true
 
+global:
+  sendAnonymousUsage: false
+
 entryPoints:
   web_80:
     address: ":80/tcp"
+
+    http:
+      redirections:
+        entryPoint:
+          to: web_443
+          scheme: https
 
   web_443:
     address: ":443/tcp"
@@ -26,5 +35,14 @@ providers:
 
   docker:
     endpoint: "unix:///var/run/docker.sock"
-    defaultRule: "Host(`{{ normalize .Name }}.cdek.dev`)"
     exposedByDefault: false
+    defaultRule: "Host(`{{ normalize .Name }}.cdek.dev`)"
+    watch: true
+
+  file:
+    directory: "/etc/traefik/custom"
+    watch: true
+
+log:
+  level: INFO
+  format: common
