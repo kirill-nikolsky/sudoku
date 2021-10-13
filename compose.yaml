@@ -5,27 +5,25 @@ services:
     image: traefik:2.5.3
 
     container_name: traefik
+    restart: unless-stopped
 
     networks:
     - sudoku_network
 
     ports:
+    - "127.0.0.1:8080:8080/tcp"
     - "80:80/tcp"
     - "443:443/tcp"
-    - "8080:8080/tcp"
     - "8000:8000/tcp"
     - "13306:3306/tcp"
     - "15432:5432/tcp"
     - "16379:6379/tcp"
 
     volumes:
-    - /etc/localtime:/etc/localtime
-    - /var/run/docker.sock:/var/run/docker.sock
-    - ./_common/traefik/traefik.yaml:/traefik.yaml
-
-    labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.traefik.rule=Host(`traefik.cdek.dev`)"
+    - /etc/localtime:/etc/localtime:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    - ./_common/traefik/custom:/etc/traefik/custom:ro
+    - ./_common/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
 
   redis:
     image: eqalpha/keydb:x86_64_v6.2.0
@@ -44,7 +42,8 @@ services:
     labels:
     - "traefik.enable=true"
     - "traefik.tcp.routers.redis.entrypoints=redis"
-    - "traefik.tcp.routers.redis.rule=Host(`redis.cdek.dev`)"
+    - "traefik.tcp.routers.redis.rule=HostSNI(`redis.cdek.dev`)"
+    - "traefik.tcp.routers.redis.tls=true"
 
   centrifugo:
     image: centrifugo/centrifugo:v3.0.1-amd64
