@@ -2,11 +2,13 @@
 
 SUDOCK_PATH="/usr/sbin/sudock"
 
-[[ -z ${APK_ADD_PACKAGES} ]] && APK_ADD_PACKAGES="bash curl mc nano sudo unzip vim"
-[[ -z ${DOCKER_USER} ]] && DOCKER_USER="docker"
-[[ -z ${DOCKER_GROUP} ]] && DOCKER_GROUP="docker"
+INSTALL_PACKAGES="bash curl mc nano sudo unzip vim"
 
-apk update && apk add ${APK_ADD_PACKAGES}
+[[ -n "${APK_ADD_EXTRA_PACKAGES}" ]] && INSTALL_PACKAGES="${INSTALL_PACKAGES} ${APK_ADD_EXTRA_PACKAGES}"
+[[ -z "${DOCKER_USER}" ]] && DOCKER_USER="docker"
+[[ -z "${DOCKER_GROUP}" ]] && DOCKER_GROUP="docker"
+
+apk update && apk add --no-cache ${INSTALL_PACKAGES}
 
 # -- Ensure regular user and group
 echo "Add/create ${DOCKER_USER}:${DOCKER_GROUP} with uid: ${DOCKER_UID}, gid: ${DOCKER_GID}"
