@@ -18,17 +18,17 @@ entryPoints:
   web_443:
     address: ":443/tcp"
 
-  mysql:
-    address: ":3306/tcp"
-
-  pgsql:
-    address: ":5432/tcp"
-
   redis:
     address: ":6379/tcp"
 
-  centrifugo:
+  centrifugo_http:
     address: ":8000/tcp"
+
+  mysql_website-admin:
+    address: ":13306/tcp"
+
+  pgsql:
+    address: ":5432/tcp"
 
 providers:
   providersThrottleDuration: 5

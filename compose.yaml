@@ -14,10 +14,11 @@ services:
     - "127.0.0.1:8080:8080/tcp"
     - "80:80/tcp"
     - "443:443/tcp"
-    - "8000:8000/tcp"
-    - "13306:3306/tcp"
-    - "15432:5432/tcp"
     - "16379:6379/tcp"
+    - "8000:8000/tcp"
+
+    - "13306:13306/tcp"
+    - "15432:5432/tcp"
 
     volumes:
     - /etc/localtime:/etc/localtime:ro
@@ -42,8 +43,9 @@ services:
     labels:
     - "traefik.enable=true"
     - "traefik.tcp.routers.redis.entrypoints=redis"
-    - "traefik.tcp.routers.redis.rule=HostSNI(`redis.cdek.dev`)"
-    - "traefik.tcp.routers.redis.tls=true"
+    - "traefik.tcp.routers.redis.rule=HostSNI(`*`)"
+    - "traefik.tcp.routers.redis.service=redis"
+    - "traefik.tcp.services.redis.loadBalancer.server.port=6379"
 
   centrifugo:
     image: centrifugo/centrifugo:v3.0.1-amd64
@@ -71,8 +73,10 @@ services:
 
     labels:
     - "traefik.enable=true"
-    - "traefik.http.routers.centrifugo.entrypoints=centrifugo"
-    - "traefik.http.routers.centrifugo.rule=Host(`centrifugo.cdek.dev`)"
+    - "traefik.http.routers.centrifugo_http.entrypoints=centrifugo_http"
+    - "traefik.http.routers.centrifugo_http.rule=Host(`centrifugo.cdek.dev`)"
+    - "traefik.http.routers.centrifugo_http.service=centrifugo_http"
+    - "traefik.http.services.centrifugo_http.loadBalancer.server.port=8000"
 
 networks:
   sudoku_network:
