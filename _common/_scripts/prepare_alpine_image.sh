@@ -18,7 +18,7 @@ GREP_GROUP=$( grep -E ${GREP_GROUP_REGEXP} /etc/group )
 
 if [[ -z "${GREP_GROUP}" ]]
 then
-  addgroup -g ${DOCKER_GID} ${DOCKER_USER}
+  addgroup -g ${DOCKER_GID} ${DOCKER_GROUP}
 else
   SED_GROUP_REGEXP="s|\w+:(x?):${DOCKER_GID}:(.*)|${DOCKER_GROUP}:\1:${DOCKER_GID}:${DOCKER_USER},\2|g"
 
