@@ -36,7 +36,7 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    defaultRule: "Host(`{{ normalize .Name }}.cdek.dev`)"
+    defaultRule: "Host(`{{ normalize .Name }}.cdek.local`)"
     watch: true
 
   file:

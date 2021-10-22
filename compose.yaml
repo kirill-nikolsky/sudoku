@@ -74,7 +74,7 @@ services:
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.centrifugo_http.entrypoints=centrifugo_http"
-    - "traefik.http.routers.centrifugo_http.rule=Host(`centrifugo.cdek.dev`)"
+    - "traefik.http.routers.centrifugo_http.rule=Host(`centrifugo.cdek.local`)"
     - "traefik.http.routers.centrifugo_http.service=centrifugo_http"
     - "traefik.http.services.centrifugo_http.loadBalancer.server.port=8000"
 
