@@ -5,7 +5,6 @@ services:
     image: traefik:2.5.3
 
     container_name: traefik
-    restart: unless-stopped
 
     networks:
     - sudoku_network
@@ -19,6 +18,8 @@ services:
 
     - "13306:13306/tcp"
     - "15432:5432/tcp"
+
+    restart: unless-stopped
 
     volumes:
     - /etc/localtime:/etc/localtime:ro
@@ -39,6 +40,8 @@ services:
 
     ports:
     - "6379/tcp"
+
+    restart: unless-stopped
 
     labels:
     - "traefik.enable=true"
@@ -65,6 +68,8 @@ services:
 
     ports:
     - "8000/tcp"
+
+    restart: unless-stopped
 
     volumes:
     - ./_common/centrifugo/config.json:/centrifugo/config.json
