@@ -22,12 +22,13 @@ services:
     restart: unless-stopped
 
     volumes:
-    - /etc/localtime:/etc/localtime:ro
-    - /var/run/docker.sock:/var/run/docker.sock:ro
-    - ./_common/traefik/custom:/etc/traefik/custom:ro
-    - ./_common/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
+    - /etc/localtime:/etc/localtime:ro,cached
+    - /var/run/docker.sock:/var/run/docker.sock:ro,cached
+    - ./_common/traefik/custom:/etc/traefik/custom:ro,cached
+    - ./_common/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro,cached
 
   redis:
+    user: ${DOCKER_UID}:${DOCKER_GID}
     image: eqalpha/keydb:x86_64_v6.2.0
 
     container_name: redis
@@ -42,6 +43,9 @@ services:
     - "6379/tcp"
 
     restart: unless-stopped
+
+    volumes:
+    - ./_common/redis/data:/data:delegated
 
     labels:
     - "traefik.enable=true"
@@ -72,7 +76,7 @@ services:
     restart: unless-stopped
 
     volumes:
-    - ./_common/centrifugo/config.json:/centrifugo/config.json
+    - ./_common/centrifugo/config.json:/centrifugo/config.json:cached
 
     command: centrifugo -c config.json
 
