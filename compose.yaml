@@ -87,3 +87,5 @@ networks:
   sudoku_network:
     name: sudoku_network
     driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
