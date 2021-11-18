@@ -2,28 +2,30 @@
 
 SUDOCK_PATH="/usr/sbin/sudock"
 
-INSTALL_PACKAGES="bash curl mc nano sudo unzip vim"
+INSTALL_PACKAGES="bash curl git mc nano shadow sudo unzip vim"
 
 [[ -n "${APK_ADD_EXTRA_PACKAGES}" ]] && INSTALL_PACKAGES="${INSTALL_PACKAGES} ${APK_ADD_EXTRA_PACKAGES}"
 [[ -z "${DOCKER_USER}" ]] && DOCKER_USER="docker"
 [[ -z "${DOCKER_GROUP}" ]] && DOCKER_GROUP="docker"
 
-apk update && apk add --no-cache ${INSTALL_PACKAGES}
+apk update && apk upgrade && apk add --no-cache ${INSTALL_PACKAGES}
 
 # -- Ensure regular user and group
-echo "Add/create ${DOCKER_USER}:${DOCKER_GROUP} with uid: ${DOCKER_UID}, gid: ${DOCKER_GID}"
+
+[ -d /var/mail ] || mkdir /var/mail
+
+echo "Add/move ${DOCKER_USER}:${DOCKER_GROUP} with uid: ${DOCKER_UID}, gid: ${DOCKER_GID}"
 
 GREP_GROUP_REGEXP="\w+:x?:${DOCKER_GID}:"
 GREP_GROUP=$( grep -E ${GREP_GROUP_REGEXP} /etc/group )
 
 if [[ -z "${GREP_GROUP}" ]]
 then
-  addgroup -g ${DOCKER_GID} ${DOCKER_GROUP}
+  groupadd -g ${DOCKER_GID} ${DOCKER_GROUP}
 else
-  SED_GROUP_REGEXP="s|\w+:(x?):${DOCKER_GID}:(.*)|${DOCKER_GROUP}:\1:${DOCKER_GID}:${DOCKER_USER},\2|g"
+  PREV_GROUP_NAME=$( echo ${GREP_GROUP} | cut -d ":" -f1 )
 
-  BUFFER=$( cat /etc/group | sed -E ${SED_GROUP_REGEXP} )
-  echo -e "${BUFFER}" > /etc/group
+  groupmod -n ${DOCKER_GROUP} ${PREV_GROUP_NAME}
 fi
 
 GREP_USER_REGEXP="\w+:x?:${DOCKER_UID}:"
@@ -31,15 +33,11 @@ GREP_USER=$( grep -E ${GREP_USER_REGEXP} /etc/passwd )
 
 if [[ -z "${GREP_USER}" ]]
 then
-  adduser -u ${DOCKER_UID} -G ${DOCKER_GROUP} -D -s /bin/bash ${DOCKER_USER}
+  useradd -g ${DOCKER_GROUP} -u ${DOCKER_UID} -m -s /bin/bash ${DOCKER_USER}
 else
-  PREV_USER=$( echo ${GREP_USER} | cut -d ':' -f1 )
-  SED_USER_REGEXP="s|\w+:(x?):${DOCKER_UID}:(.*)/home/\w+|${DOCKER_USER}:\1:${DOCKER_UID}:\2/home/${DOCKER_USER}|g"
+  PREV_USER_NAME=$( echo ${GREP_USER} | cut -d ':' -f1 )
 
-  BUFFER=$( cat /etc/passwd | sed -E ${SED_USER_REGEXP} )
-  echo -e "${BUFFER}" > /etc/passwd
-
-  mv /home/${PREV_USER} /home/${DOCKER_USER}
+  usermod -l ${DOCKER_USER} -g ${DOCKER_GROUP} -m -d /home/${DOCKER_USER} -s /bin/bash ${PREV_USER_NAME}
 fi
 
 if [[ -n "{APP_ROOT}" ]]
@@ -49,7 +47,7 @@ fi
 
 
 # -- Various system fixes
-cat /etc/passwd | sed -E 's|/bin/[a]?sh|/bin/bash|g' | tee /etc/passwd > /dev/null
+cat /etc/passwd | sed -i -E 's|/bin/[a]?sh|/bin/bash|g' /etc/passwd
 
 echo '[[ `id -u` -ge 1000 || `id -un` == '${DOCKER_USER}' ]] && umask 0002' > /etc/profile.d/regular_user_umask.sh
 
