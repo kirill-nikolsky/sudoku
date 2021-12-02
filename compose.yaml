@@ -17,7 +17,7 @@ services:
     - "8000:8000/tcp"
 
     - "13306:13306/tcp"
-    - "15432:5432/tcp"
+    - "15432:15432/tcp"
 
     restart: unless-stopped
 

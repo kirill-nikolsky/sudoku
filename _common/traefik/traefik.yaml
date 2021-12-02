@@ -27,8 +27,8 @@ entryPoints:
   mysql_website-admin:
     address: ":13306/tcp"
 
-  pgsql:
-    address: ":5432/tcp"
+  pgsql_cabinet:
+    address: ":15432/tcp"
 
 providers:
   providersThrottleDuration: 5
