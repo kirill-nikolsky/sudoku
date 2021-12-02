@@ -57,7 +57,7 @@ class Composer:
 
         try:
             version_string = subprocess.check_output(f"{DC} --version --short", shell=True).decode("ISO-8859-1")
-            version_match = re.search(r"version\s(?P<version>\d+(?:\.\d+)*)", version_string).group("version")
+            version_match = re.search(r"version\sv?(?P<version>\d+(?:\.\d+)*)", version_string).group("version")
             (major, minor) = map(int, tuple(version_match.split(".")[:2]))
 
             if (major < 1 or (major == 1 and minor < 26)):
