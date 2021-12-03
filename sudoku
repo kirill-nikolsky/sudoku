@@ -60,8 +60,8 @@ class Composer:
             version_match = re.search(r"version\sv?(?P<version>\d+(?:\.\d+)*)", version_string).group("version")
             (major, minor) = map(int, tuple(version_match.split(".")[:2]))
 
-            if (major < 1 or (major == 1 and minor < 26)):
-                print(f"\n\033[0;41m {DC} has incompatible version. Minimum required version is 1.26+ \033[0m\n")
+            if (major < 1 or (major == 1 and minor < 28)):
+                print(f"\n\033[0;41m {DC} has incompatible version. Minimum required version is 1.28+ \033[0m\n")
 
                 exit(11)
 
