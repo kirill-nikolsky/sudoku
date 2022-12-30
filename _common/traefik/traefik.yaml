@@ -9,12 +9,6 @@ entryPoints:
   web_80:
     address: ":80/tcp"
 
-    http:
-      redirections:
-        entryPoint:
-          to: web_443
-          scheme: https
-
   web_443:
     address: ":443/tcp"
 
@@ -26,6 +20,9 @@ entryPoints:
 
   mysql_website-admin:
     address: ":13306/tcp"
+
+  mysql_pms:
+    address: ":13307/tcp"
 
   pgsql_cabinet:
     address: ":15432/tcp"

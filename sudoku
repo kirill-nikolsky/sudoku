@@ -3,7 +3,6 @@
 import glob
 import os
 import re
-import shutil
 import subprocess
 import sys
 
@@ -14,7 +13,7 @@ __DIRNAME__ = os.path.basename(__DIR__)
 __ARGS__ = sys.argv[1:]
 
 D = "/usr/bin/env docker"
-DC = "/usr/bin/env docker-compose"
+DC = "/usr/bin/env docker compose"
 WRONG_USAGE_MESSAGE = f"\n\033[0;41m Usage: ./{__FILENAME__} build | force-build | start | stop | restart | rebuild | force-rebuild \033[0m\n"
 
 if (len(__ARGS__) != 1):
@@ -25,7 +24,11 @@ else:
     __COMMAND__ = __ARGS__[0]
 
 class Composer:
-    def __init__(self):
+    def __init__(self, run_checks = True):
+        if (run_checks == True):
+            self._check_docker()
+            self._check_docker_compose()
+
         self.compose_files = None
         self.force_rebuild = False
 
@@ -56,31 +59,23 @@ class Composer:
         sys.stdout.write(f"\033[93m Checking {DC} ...\033[0m")
 
         try:
-            version_string = subprocess.check_output(f"{DC} --version --short", shell=True).decode("ISO-8859-1")
-            version_match = re.search(r"version\sv?(?P<version>\d+(?:\.\d+)*)", version_string).group("version")
+            version_string = subprocess.check_output(f"{DC} version --short", shell=True).decode("ISO-8859-1")
+            version_match = re.search(r"(?P<version>\d+(?:\.\d+)*)", version_string).group("version")
             (major, minor) = map(int, tuple(version_match.split(".")[:2]))
 
-            if (major < 1 or (major == 1 and minor < 28)):
-                print(f"\n\033[0;41m {DC} has incompatible version. Minimum required version is 1.28+ \033[0m\n")
+            if (major < 2):
+                print("\033[91m fail \033[0m")
+                print(f"\n\033[0;41m {DC} has incompatible version. Minimum required version is 2+ \033[0m\n")
 
                 exit(11)
 
         except OSError:
+            print("\033[91m fail \033[0m")
             print(f"\n\033[0;41m {DC} either not installed or not available in PATH \033[0m\n")
 
             exit(11)
 
         print("\033[92m success \033[0m")
-
-    def _check_decorator(wrapped):
-        def wrapper(self):
-            if (wrapped.__name__ == __COMMAND__):
-                self._check_docker()
-                self._check_docker_compose()
-
-            wrapped(self)
-
-        return wrapper
 
     def find_compose_files(self):
         if (self.compose_files is None):
@@ -92,47 +87,28 @@ class Composer:
 
         return self.compose_files
 
-    @_check_decorator
-    def check(self):
-        pass
-
-    @_check_decorator
     def build(self):
-        src_scripts_dir = "./_common/_scripts"
-
         for compose_file in self.find_compose_files():
             compose_file_dir = os.path.realpath(os.path.dirname(compose_file))
             compose_file_docker_dir = next(iter(glob.glob(compose_file_dir + "/.docker") or []), None)
-
-            if (compose_file_docker_dir is not None):
-                dst_scripts_dir = compose_file_docker_dir + "/_scripts"
-
-                if not os.path.exists(dst_scripts_dir):
-                    os.mkdir(dst_scripts_dir)
-
-                shutil.copyfile(f"{src_scripts_dir}/prepare_alpine_image.sh", f"{dst_scripts_dir}/prepare_alpine_image.sh")
 
             build_cmd = "build --no-cache" if self.force_rebuild is True else "build"
             exec_cmd = f"{DC} -f {compose_file} {build_cmd}"
 
             subprocess.call(exec_cmd, env=self.env_vars, shell=True)
 
-    @_check_decorator
     def start(self):
         for compose_file in self.find_compose_files():
             subprocess.call(f"{DC} -f {compose_file} up -d", env=self.env_vars, shell=True)
 
-    @_check_decorator
     def stop(self):
         for compose_file in reversed(self.find_compose_files()):
             subprocess.call(f"{DC} -f {compose_file} down", env=self.env_vars, shell=True)
 
-    @_check_decorator
     def restart(self):
         self.stop()
         self.start()
 
-    @_check_decorator
     def rebuild(self):
         self.stop()
         self.build()
@@ -141,14 +117,7 @@ class Composer:
 composer = Composer()
 
 if (__COMMAND__ == "check"):
-    composer.check()
-
-elif (__COMMAND__ == "build"):
-    composer.build()
-
-elif (__COMMAND__ == "force-build"):
-    composer.force_rebuild = True
-    composer.build()
+    pass
 
 elif (__COMMAND__ == "start"):
     composer.start()
@@ -158,6 +127,13 @@ elif (__COMMAND__ == "stop"):
 
 elif (__COMMAND__ == "restart"):
     composer.restart()
+
+elif (__COMMAND__ == "build"):
+    composer.build()
+
+elif (__COMMAND__ == "force-build"):
+    composer.force_rebuild = True
+    composer.build()
 
 elif (__COMMAND__ == "rebuild"):
     composer.rebuild()

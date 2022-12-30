@@ -1,9 +1,10 @@
-version: "3"
+version: "3.7"
 
 services:
   traefik:
-    image: traefik:2.5.3
+    image: traefik:2.9.6
 
+    hostname: traefik
     container_name: traefik
 
     networks:
@@ -17,6 +18,7 @@ services:
     - "8000:8000/tcp"
 
     - "13306:13306/tcp"
+    - "13307:13307/tcp"
     - "15432:15432/tcp"
 
     restart: unless-stopped
@@ -29,8 +31,9 @@ services:
 
   redis:
     user: ${DOCKER_UID}:${DOCKER_GID}
-    image: eqalpha/keydb:x86_64_v6.2.0
+    image: eqalpha/keydb:latest
 
+    hostname: redis
     container_name: redis
 
     depends_on:
@@ -39,7 +42,7 @@ services:
     networks:
     - sudoku_network
 
-    ports:
+    expose:
     - "6379/tcp"
 
     restart: unless-stopped
@@ -55,8 +58,9 @@ services:
     - "traefik.tcp.services.redis.loadBalancer.server.port=6379"
 
   centrifugo:
-    image: centrifugo/centrifugo:v3.0.1-amd64
+    image: centrifugo/centrifugo:v3.0.1
 
+    hostname: centrifugo
     container_name: centrifugo
 
     ulimits:
@@ -70,7 +74,7 @@ services:
     networks:
     - sudoku_network
 
-    ports:
+    expose:
     - "8000/tcp"
 
     restart: unless-stopped
