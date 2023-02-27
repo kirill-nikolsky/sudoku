@@ -23,6 +23,9 @@ entryPoints:
 
   mysql_pms:
     address: ":13307/tcp"
+    
+  mysql_landing:
+    address: ":13308/tcp"
 
   pgsql_cabinet:
     address: ":15432/tcp"
