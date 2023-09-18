@@ -30,6 +30,9 @@ entryPoints:
   pgsql_cabinet:
     address: ":15432/tcp"
 
+  pgsql_pms-backend-website:
+    address: ":15433/tcp"
+
 providers:
   providersThrottleDuration: 5
 

@@ -21,6 +21,7 @@ services:
     - "13307:13307/tcp"
     - "13308:13308/tcp"
     - "15432:15432/tcp"
+    - "15433:15433/tcp"
 
     restart: unless-stopped
 
