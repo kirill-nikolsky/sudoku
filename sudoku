@@ -93,17 +93,19 @@ class Composer:
             compose_file_docker_dir = next(iter(glob.glob(compose_file_dir + "/.docker") or []), None)
 
             build_cmd = "build --no-cache" if self.force_rebuild is True else "build"
-            exec_cmd = f"{DC} -f {compose_file} {build_cmd}"
+            exec_cmd = f"cd {compose_file_dir}; {DC} {build_cmd}"
 
             subprocess.call(exec_cmd, env=self.env_vars, shell=True)
 
     def start(self):
         for compose_file in self.find_compose_files():
-            subprocess.call(f"{DC} -f {compose_file} up -d", env=self.env_vars, shell=True)
+            compose_file_dir = os.path.realpath(os.path.dirname(compose_file))
+            subprocess.call(f"cd {compose_file_dir}; {DC} up -d", env=self.env_vars, shell=True)
 
     def stop(self):
         for compose_file in reversed(self.find_compose_files()):
-            subprocess.call(f"{DC} -f {compose_file} down", env=self.env_vars, shell=True)
+            compose_file_dir = os.path.realpath(os.path.dirname(compose_file))
+            subprocess.call(f"cd {compose_file_dir}; {DC} down", env=self.env_vars, shell=True)
 
     def restart(self):
         self.stop()
