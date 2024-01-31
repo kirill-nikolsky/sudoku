@@ -36,6 +36,9 @@ entryPoints:
   pgsql_pms-backend-website:
     address: ":15433/tcp"
 
+  vue_hmr:
+    address: ":24678/tcp"
+
 providers:
   providersThrottleDuration: 5
 
