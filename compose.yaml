@@ -24,6 +24,8 @@ services:
     - "15432:15432/tcp"
     - "15433:15433/tcp"
 
+    - "24678:24678/tcp"
+
     restart: unless-stopped
 
     volumes:
