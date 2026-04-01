@@ -1,5 +1,3 @@
-version: "3.7"
-
 services:
   traefik:
     image: traefik:2.11.31
@@ -29,6 +27,7 @@ services:
     volumes:
     - /etc/localtime:/etc/localtime:ro,cached
     - /var/run/docker.sock:/var/run/docker.sock:ro,cached
+    - ./_common/traefik/certs:/etc/traefik/certs:ro,cached
     - ./_common/traefik/custom:/etc/traefik/custom:ro,cached
     - ./_common/traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro,cached
 
