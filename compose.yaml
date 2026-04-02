@@ -59,40 +59,6 @@ services:
     - "traefik.tcp.routers.redis.service=redis"
     - "traefik.tcp.services.redis.loadBalancer.server.port=6379"
 
-  centrifugo:
-    image: centrifugo/centrifugo:v3.0.1
-
-    hostname: centrifugo
-    container_name: centrifugo
-
-    ulimits:
-      nofile:
-        soft: 65535
-        hard: 65535
-
-    depends_on:
-    - traefik
-
-    networks:
-    - sudoku_network
-
-    expose:
-    - "8000/tcp"
-
-    restart: unless-stopped
-
-    volumes:
-    - ./_common/centrifugo/config.json:/centrifugo/config.json:cached
-
-    command: centrifugo -c config.json
-
-    labels:
-    - "traefik.enable=true"
-    - "traefik.http.routers.centrifugo_http.entrypoints=centrifugo_http"
-    - "traefik.http.routers.centrifugo_http.rule=Host(`centrifugo.cdek.local`)"
-    - "traefik.http.routers.centrifugo_http.service=centrifugo_http"
-    - "traefik.http.services.centrifugo_http.loadBalancer.server.port=8000"
-
 networks:
   sudoku_network:
     name: sudoku_network
