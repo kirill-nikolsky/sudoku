@@ -64,3 +64,4 @@ networks:
     driver: bridge
     driver_opts:
       com.docker.network.enable_ipv6: "false"
+      com.docker.network.bridge.name: "br-sudoku"
